@@ -9,7 +9,10 @@ from rest_framework import routers
 urlpatterns = [
     url(r'^create/$', views.UserCreateView.as_view(), name='create-user'),
     url(r'^(?P<pk>\d+)/$', views.UserView.as_view(), name='list-user'),
-    url(r'^login/$', views.login, name='login')
+    url(r'^login/$', views.login, name='login'),
+    url(r'^mailverify/(?P<verify_id>\w+)/$', views.mail_verify, name='verify-mail'),
+    url(r'password_reset/$', views.password_reset, name='password-reset'),
+    url(r'^password_update/(?P<link>\w+)/$', views.PasswordReset.as_view(), name='passwrod-update')
 ]
 
 # urlpatterns += router.urls

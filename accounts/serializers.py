@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-import hashlib
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -26,14 +25,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, attrs):
-        password = hashlib.sha256(attrs['password'].encode('utf-8')).hexdigest()
-        user = User(username=attrs['username'], password=password,
-                                        email=attrs['email'])
+        user = User(username=attrs['username'], email=attrs['email'])
         user.is_active = False
-
-        # verify the mail then change the active status of the user,
-        #  by sending a mail (add to celery as a asynchronous task)
-
+        user.set_password(attrs['password'])
         user.save()
         return user
 
@@ -47,6 +41,36 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email')
+
+
+class ResetPassword(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class PasswordReset(serializers.ModelSerializer):
+    password = serializers.CharField(required=True)
+    confirm_new = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+
+        # using self.instance you can get the current instance and exclude it on need.
+        if attrs['confirm_new'] != attrs['password']:
+            raise serializers.ValidationError('Enter same passwords both times')
+
+        if len(attrs['confirm_new']) < 8:
+            raise serializers.ValidationError('min password length is 8')
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        print(instance)
+        return instance
+
+    class Meta:
+        model = User
+        fields = ('password', 'confirm_new')
+
+
 
 
 # a user model with the authentication od username, email and password1, password2 for signup
