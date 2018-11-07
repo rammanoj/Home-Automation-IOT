@@ -92,7 +92,7 @@ DATABASES = {
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'rammanojpotla1608@gmail.com'
-EMAIL_HOST_PASSWORD = 'atlantis1999'
+EMAIL_HOST_PASSWORD = 'thisisfakepassword'
 EMAIL_USE_TLS = True
 
 # Password validation
