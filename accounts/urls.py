@@ -12,7 +12,9 @@ urlpatterns = [
     url(r'^login/$', views.login, name='login'),
     url(r'^mailverify/(?P<verify_id>\w+)/$', views.mail_verify, name='verify-mail'),
     url(r'password_reset/$', views.password_reset, name='password-reset'),
-    url(r'^password_update/(?P<link>\w+)/$', views.PasswordReset.as_view(), name='passwrod-update')
+    url(r'^password_update/(?P<link>\w+)/$', views.PasswordReset.as_view(), name='passwrod-update'),
+    url(r'^user_update/(?P<pk>\d+)/$', views.UserUpdateView.as_view(), name='user-update'),
+    url('^logout/$', views.Logout.as_view(), name='logout'),
 ]
 
 # urlpatterns += router.urls

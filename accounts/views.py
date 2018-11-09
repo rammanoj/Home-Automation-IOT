@@ -1,6 +1,7 @@
 import random
 from _sha256 import sha256
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 from django.core.mail import EmailMultiAlternatives
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
@@ -8,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from accounts import models
 from django.core.exceptions import ObjectDoesNotExist
-from .serializers import UserCreateSerializer, UserSerializer, PasswordReset, ResetPassword
+from .serializers import UserCreateSerializer, UserSerializer, PasswordReset, ResetPassword, UserUpdateSerializer
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework import status
@@ -47,8 +48,22 @@ class UserCreateView(generics.CreateAPIView):
 
 
 class UserUpdateView(generics.UpdateAPIView):
-    serializer_class = UserCreateSerializer
-    queryset = User.objects.all()
+    serializer_class = UserUpdateSerializer
+
+    def get_queryset(self):
+        print(self.kwargs['pk'])
+        return User.objects.filter(pk=self.kwargs['pk'])
+
+    def partial_update(self, request, *args, **kwargs):
+        if self.get_object() != request.user:
+            return Response({'error': 'permission denied'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'password' in request.data:
+            request.data['password'] = make_password(request.data['password'])
+
+        instance = super(UserUpdateView, self).partial_update(request, *args, **kwargs)
+        instance.data['message'] = 'successfully udpated profile!'
+        return instance
 
 
 class UserView(generics.RetrieveUpdateAPIView):
@@ -61,9 +76,7 @@ class UserView(generics.RetrieveUpdateAPIView):
             return super(UserView, self).get(self, request, *args, **kwargs)
 
     def get_queryset(self):
-        # print(User.objects.get(user=self.request.user))
         return User.objects.all()
-        # return User.objects.get(pk=self.request.pk)
 
 
 @api_view(['POST'])
@@ -122,6 +135,21 @@ def login(request):
     }, status=status.HTTP_200_OK)
 
 
+class Logout(generics.DestroyAPIView):
+
+    def get_queryset(self):
+        if self.request.user is not None:
+            return User.objects.all()
+        else:
+            return User.objects.none()
+
+    def get(self, request, format=None):
+        if request.user is not None:
+            request.user.auth_token.delete()
+            return Response({'message': 'Successfully logout.'})
+        else:
+            return Response({'message': 'Already logged out'})
+
 @api_view(['GET'])
 @csrf_exempt
 @permission_classes((AllowAny,))
@@ -139,17 +167,6 @@ def mail_verify(self, verify_id):
         user_mail.user.save()
         return Response({'message': 'Your mail successfully verified.'}, status=status.HTTP_200_OK)
 
-
-#
-# class PasswordUpdate(generics.UpdateAPIView):
-#     permission_classes = []
-#     authentication_classes = []
-#     serializer_class = PasswordReset
-#
-#     def get_queryset(self):
-#         queryset = models.MailVerification.objects.get(link=self.kwargs.get('verify_id', None))
-#         return queryset
-
 class PasswordReset(generics.UpdateAPIView):
     lookup_field = 'link'
     serializer_class = PasswordReset
@@ -157,12 +174,23 @@ class PasswordReset(generics.UpdateAPIView):
     authentication_classes = []
 
     def get_queryset(self):
-        return models.MailVerification.objects.get(link=self.kwargs.get('link', None))
+        try:
+            queryset = models.MailVerification.objects.get(link=self.kwargs.get('link', None))
+        except ObjectDoesNotExist:
+            queryset = models.MailVerification.objects.none()
+
+        return queryset
 
     def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(request.data)
-        if serializer.is_valid:
-            serializer.save()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            print(self.get_queryset())
+            if not self.get_queryset():
+                return Response({'error': 'perform a password change operaiton first.'})
+            user = User.objects.get(pk=self.get_queryset().user.pk)
+            user.set_password(serializer.validated_data['password'])
+            user.save()
+            self.get_queryset().delete()
             return Response({'message': 'Password successfully updated'}, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

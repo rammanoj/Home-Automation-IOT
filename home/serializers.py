@@ -6,16 +6,17 @@ from django.contrib.auth.models import User
 
 class HomeSerializer(serializers.ModelSerializer):
 
-    def create(self, validated_data):
+    def validate_name(self, name):
 
-        user = User.objects.get(username=self.request.user)
-        models.Home.objects.create(user=user, temperature=validated_data['temperature'],
-                                   humidity=validated_data['humidity'])
-        return validated_data
+        if len(name) < 8:
+            raise serializers.ValidationError('min length of 8 for home name')
+
+        return name
 
     class Meta:
         model = models.Home
         fields = ('pk', 'name', 'temperature', 'humidity')
+        read_only_fields = ('pk', 'temperature', 'humidity')
 
 
 class SwitchSerializer(serializers.ModelSerializer):
@@ -26,14 +27,14 @@ class SwitchSerializer(serializers.ModelSerializer):
     )
 
     switch_name = serializers.CharField(max_length=50, required=True)
-    switch_status = serializers.ChoiceField(SWITCH_STATUS)
+    switch_status = serializers.ChoiceField(SWITCH_STATUS, required=False)
 
-    def create(self, validated_data):
-        user = User.objects.get(username='rammanoj')
-        home = models.Home.objects.get(user=user)
-        models.Switch.objects.create(home=home, switch_name=validated_data['switch_name'],
-                                     switch_status=validated_data['switch_status'])
-        return validated_data
+    def validate_switch_name(self, name):
+        if len(name) < 5:
+            raise serializers.ValidationError('Name should be atleast 8 in length')
+        if models.Switch.objects.filter(switch_name=name).exists():
+            raise serializers.ValidationError('switch name already taken by another user')
+        return name
 
     class Meta:
         model = models.Switch
