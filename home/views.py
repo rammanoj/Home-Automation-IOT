@@ -1,11 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from . import serializers
 from rest_framework.pagination import DjangoPaginator
-from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, ListCreateAPIView, \
-    UpdateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 from . import models
 from django.contrib.auth.models import User
 # Create your views here.
@@ -61,7 +59,7 @@ class SwitchCreateView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
-            home = models.Home.objects.get(pk=request.data['home'])
+            home = request.user.home_set.get(pk=request.data['home'])
         except ObjectDoesNotExist:
             return Response({'error': 'Home is not found'})
 
@@ -85,31 +83,38 @@ class SwitchListView(ListAPIView):
 
     def get_queryset(self):
         home_id = self.kwargs.get('home_id', None)
-        if home_id is None or int(home_id) < 0:
+        if home_id is None or int(home_id) < 0 or \
+                self.request.user.pk != models.Home.objects.filter(pk=home_id)[0].user.pk:
             return models.Switch.objects.none()
-        try:
-            query = models.Switch.objects.filter(home=models.Home.objects.filter(pk=home_id))
-        except ObjectDoesNotExist:
-            return models.Switch.objects.none()
+        query = models.Switch.objects.filter(home=models.Home.objects.filter(pk=home_id))
         return query
 
     def get(self, request, *args, **kwargs):
-        print(self.get_object().home.user)
-        print(request.user)
-        if request.user is not self.get_object().home.user:
-            return Response({'error': 'permission denied'})
         return super(SwitchListView, self).get(request, *args, **kwargs)
 
 
-class SwitchUpdateView(UpdateAPIView):
+class SwitchDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.SwitchSerializer
 
     def get_queryset(self):
-        pass
+        home = self.request.user.home_set.all()
+        print(self.kwargs['pk'])
+        switch = models.Switch.objects.filter(pk=self.kwargs['pk'])
+        if not switch.exists() or switch[0].home not in home:
+            return models.Switch.objects.none()
+        return switch
+
+    def delete(self, request, *args, **kwargs):
+        super(SwitchDetailView, self).delete(request, *args, **kwargs)
+        return Response({'message': 'Switch successfully deleted'})
 
 # API views to handle gas leakage, Fire accident and Automated setting of AC on decreasing temperature
 
-
+# handle these things:
+# 1. temperature and humidity update by esp
+# 2. list delete view for switches
+# 3. gas, fire and smoke handle and send corresponding mail
+# 4. ON AC signal with temperature > temp_set
 
 
 

@@ -38,7 +38,8 @@ class SwitchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Switch
-        fields = ('switch_name', 'switch_status')
+        fields = ('pk', 'switch_name', 'switch_status')
+        read_only_fields = ('pk',)
 
 
 class HomeListSerializer(serializers.Serializer):
