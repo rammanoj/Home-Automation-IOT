@@ -15,7 +15,7 @@ class HomeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Home
-        fields = ('pk', 'name', 'temperature', 'humidity')
+        fields = ('pk', 'name', 'temperature', 'humidity', 'esp_code')
         read_only_fields = ('pk', 'temperature', 'humidity')
 
 
@@ -45,4 +45,12 @@ class SwitchSerializer(serializers.ModelSerializer):
 class HomeListSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
     name = serializers.CharField()
+
+
+class HomeUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Home
+        fields = ('pk', 'temperature', 'humidity', 'esp_code')
+        read_only_fields = ('pk',)
 
