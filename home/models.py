@@ -10,6 +10,7 @@ class Home(models.Model):
     humidity = models.FloatField(default=40, null=True, blank=True)
     temperature_user_set = models.FloatField(default=25, null=True, blank=True)
     esp_code = models.TextField(default=None, null=True, blank=True)
+    esp_domain = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return "id:" + str(self.pk) + " " + self.user.username

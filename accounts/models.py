@@ -8,6 +8,7 @@ class MailVerification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     link = models.TextField(null=True, blank=True)
     link_expire = models.DateTimeField(default=timezone.now())
+    request_type = models.IntegerField(default=0, null=True)
 
     def __str__(self):
         return self.user.username

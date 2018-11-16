@@ -7,14 +7,29 @@ from rest_framework import routers
 # router.register(r'users/(?P<pk>\d+)/$', basename='users-detail', action='detail')
 
 urlpatterns = [
-    url(r'^create/$', views.UserCreateView.as_view(), name='create-user'),
-    url(r'^(?P<pk>\d+)/$', views.UserView.as_view(), name='list-user'),
-    url(r'^login/$', views.login, name='login'),
+    # verifying mail
     url(r'^mailverify/(?P<verify_id>\w+)/$', views.mail_verify, name='verify-mail'),
-    url(r'password_reset/$', views.password_reset, name='password-reset'),
-    url(r'^password_update/(?P<link>\w+)/$', views.PasswordReset.as_view(), name='passwrod-update'),
+    url(r'^forgot_password_reset/$', views.password_reset, name='forgot-password-reset'),
+
+    # User model operations
+    url(r'^(?P<pk>\d+)/$', views.UserView.as_view(), name='user-detial'),
+    url(r'^create/$', views.UserCreateView.as_view(), name='create-user'),
+    url(r'^forgot_password_update/(?P<link>\w+)/$', views.ForgotPasswordResetView.as_view(), name='forgot-password-update'),
+    url(r'^password_update/(?P<pk>\d+)/$', views.PasswordResetView.as_view(), name='password-update'),
     url(r'^user_update/(?P<pk>\d+)/$', views.UserUpdateView.as_view(), name='user-update'),
+
+    # login and logout operations
+    url(r'^login/$', views.login, name='login'),
     url('^logout/$', views.Logout.as_view(), name='logout'),
 ]
 
-# urlpatterns += router.urls
+
+# user update
+
+
+# three kinds of mail verifications
+# 1. password forget - 2
+# 2. email change - 1
+# 3. user registration - 0
+
+# also check for the expiry of the link
