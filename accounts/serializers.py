@@ -108,10 +108,6 @@ class ForgotPasswordResetSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    def update(self, instance, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        return validated_data
-
     class Meta:
         model = User
         fields = ('password', 'confirm_new')

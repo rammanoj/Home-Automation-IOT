@@ -54,9 +54,6 @@ class HomeCreateView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.validated_data['user'] = request.user
-            # also implement the random functionality here
-            # print(serializer.validated_data['name']
-            #         .join( [random.choice(string.digits) for i in xrange(8)]))
             serializer.validated_data['esp_code'] = hashlib.sha256(serializer.validated_data['name']
                                                                    .encode('utf-8')).hexdigest()
             serializer.save()
@@ -64,7 +61,7 @@ class HomeCreateView(CreateAPIView):
             data['message'] += hashlib.sha256(serializer.validated_data['name'].encode('utf-8')).hexdigest()
             send_mail(subject=data['subject'], message=data['message'], from_email=data['from_mail'],
                       recipient_list=[self.request.user.email])
-            return Response({'message': 'created home'})
+            return Response({'message': 'created home, check your mail'})
         else:
             return Response({'error': serializer.errors})
 
@@ -78,9 +75,6 @@ class SwitchCreateView(CreateAPIView):
             home = request.user.home_set.get(pk=request.data['home'])
         except ObjectDoesNotExist:
             return Response({'error': 'Home is not found'})
-
-        if home not in request.user.home_set.all():
-            return Response({'error': 'permission denied'})
 
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():

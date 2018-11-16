@@ -28,6 +28,7 @@ class SwitchSerializer(serializers.ModelSerializer):
 
     switch_name = serializers.CharField(max_length=50, required=True)
     switch_status = serializers.ChoiceField(SWITCH_STATUS, required=False)
+    relay = serializers.CharField(required=True, max_length=200)
 
     def validate_switch_name(self, name):
         if len(name) < 5:
@@ -38,7 +39,7 @@ class SwitchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Switch
-        fields = ('pk', 'switch_name', 'switch_status')
+        fields = ('pk', 'switch_name', 'switch_status', 'relay')
         read_only_fields = ('pk',)
 
 
