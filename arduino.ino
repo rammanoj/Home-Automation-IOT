@@ -5,13 +5,13 @@
 #include <IRsend.h>
 #define IR_LED D1
 IRsend irsend(IR_LED);
-#define FIREBASE_HOST "iotfirebaseproject-8f0c3.firebaseio.com"
-#define FIREBASE_AUTH "nim2GI1La5UqBXeUbUTX4MM8c7jtg42FOHzOKDqc"
-#define WIFI_SSID "Sarath Chandra"
-#define WIFI_PASSWORD "qwerty12"
+#define FIREBASE_HOST "domain"
+#define FIREBASE_AUTH "password"
+#define WIFI_SSID "Rammanoj"
+#define WIFI_PASSWORD "helloworld"
 
-String email="saisarathganti@gmail.com";
-String password="1234567890";
+String email="rammanojpotla@gmail.com";
+String password="thisissamplepass";
 // Pin Definitions
 #define DHTPIN D2
 #define DHTTYPE DHT11
